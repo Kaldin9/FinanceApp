@@ -26,7 +26,7 @@ struct NeonBarChartView: View {
             ForEach(data) { item in
                 BarMark(
                     x: .value("Месяц", item.label),
-                    y: .value("Net",   item.net)
+                    y: .value("Баланс", item.net)
                 )
                 .cornerRadius(6)
                 .foregroundStyle(item.net >= 0 ? posGradient : negGradient)

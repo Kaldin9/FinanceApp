@@ -39,20 +39,6 @@
 			);
 			target = 3D5F826C2DC8D8FC0082B233 /* FinanceApp */;
 		};
-		3D5F832F2DC8DB620082B233 /* Exceptions for "FinanceApp" folder in "FinanceAppTests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Finance_AppApp.swift,
-			);
-			target = 3D5F827E2DC8D8FC0082B233 /* FinanceAppTests */;
-		};
-		3D5F83302DC8DB620082B233 /* Exceptions for "FinanceApp" folder in "FinanceAppUITests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Finance_AppApp.swift,
-			);
-			target = 3D5F82882DC8D8FC0082B233 /* FinanceAppUITests */;
-		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -60,8 +46,6 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				3D5F82F92DC8DA550082B233 /* Exceptions for "FinanceApp" folder in "FinanceApp" target */,
-				3D5F832F2DC8DB620082B233 /* Exceptions for "FinanceApp" folder in "FinanceAppTests" target */,
-				3D5F83302DC8DB620082B233 /* Exceptions for "FinanceApp" folder in "FinanceAppUITests" target */,
 			);
 			path = FinanceApp;
 			sourceTree = "<group>";

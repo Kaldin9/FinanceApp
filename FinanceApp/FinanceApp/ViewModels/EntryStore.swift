@@ -8,11 +8,19 @@
 import Foundation
 import Combine
 
+@MainActor
 class EntryStore: ObservableObject {
     @Published private(set) var entries: [Entry] = [] {
-        didSet { save() }
+        didSet {
+            guard !isHydrating else { return }
+            scheduleSave()
+        }
     }
     private let saveURL = FileManager.documentsDirectory.appendingPathComponent("entries.json")
+    private let saveQueue = DispatchQueue(label: "EntryStore.SaveQueue", qos: .utility)
+    private var saveWorkItem: DispatchWorkItem?
+    private var isHydrating = false
+    @Published private(set) var lastLoadError: String?
 
     // Поисковые и фильтрующие параметры
     @Published var searchText: String = ""
@@ -28,6 +36,12 @@ class EntryStore: ObservableObject {
         }
     }
     func delete(at offsets: IndexSet) { entries.remove(atOffsets: offsets) }
+    func deleteDisplayed(at offsets: IndexSet) {
+        let idsToDelete = offsets.compactMap { index in
+            displayedEntries.indices.contains(index) ? displayedEntries[index].id : nil
+        }
+        entries.removeAll { idsToDelete.contains($0.id) }
+    }
 
     // Отфильтрованный и отсортированный список
     var displayedEntries: [Entry] {
@@ -42,7 +56,7 @@ class EntryStore: ObservableObject {
         let exportURL = FileManager.documentsDirectory.appendingPathComponent("export_entries.json")
         do {
             let data = try JSONEncoder().encode(entries)
-            try data.write(to: exportURL)
+            try data.write(to: exportURL, options: .atomic)
             return exportURL
         } catch {
             print("Export error: \(error)")
@@ -50,16 +64,54 @@ class EntryStore: ObservableObject {
         }
     }
 
-    private func save() {
-        do {
-            let data = try JSONEncoder().encode(entries)
-            try data.write(to: saveURL)
-        } catch { print("Error saving entries: \(error)") }
+    private func scheduleSave() {
+        let snapshot = entries
+        saveWorkItem?.cancel()
+        let workItem = DispatchWorkItem { [saveURL] in
+            do {
+                let data = try JSONEncoder().encode(snapshot)
+                try data.write(to: saveURL, options: .atomic)
+            } catch {
+                print("Error saving entries: \(error)")
+            }
+        }
+        saveWorkItem = workItem
+        saveQueue.asyncAfter(deadline: .now() + 0.3, execute: workItem)
     }
+
     private func load() {
+        isHydrating = true
+        defer { isHydrating = false }
+
+        guard FileManager.default.fileExists(atPath: saveURL.path) else {
+            entries = []
+            return
+        }
+
         do {
             let data = try Data(contentsOf: saveURL)
             entries = try JSONDecoder().decode([Entry].self, from: data)
-        } catch { entries = [] }
+            lastLoadError = nil
+        } catch {
+            backupCorruptedStore()
+            entries = []
+            lastLoadError = "Повреждён файл данных записей. Создана резервная копия."
+            print("Error loading entries: \(error)")
+        }
+    }
+
+    private func backupCorruptedStore() {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let stamp = formatter.string(from: Date()).replacingOccurrences(of: ":", with: "-")
+        let backupURL = FileManager.documentsDirectory.appendingPathComponent("entries_corrupted_\(stamp).json")
+        do {
+            if FileManager.default.fileExists(atPath: backupURL.path) {
+                try FileManager.default.removeItem(at: backupURL)
+            }
+            try FileManager.default.moveItem(at: saveURL, to: backupURL)
+        } catch {
+            print("Error backing up corrupted entries store: \(error)")
+        }
     }
 }

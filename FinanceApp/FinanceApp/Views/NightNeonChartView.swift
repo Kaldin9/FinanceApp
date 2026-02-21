@@ -31,7 +31,7 @@ struct NightNeonChartView: View {
     private var data: [PeriodData] {
         let cal = Calendar.current
         let grouped = Dictionary(grouping: store.entries) {
-            cal.dateInterval(of: .month, for: $0.date)!.start
+            cal.dateInterval(of: .month, for: $0.date)?.start ?? $0.date
         }
         return grouped.map { monthStart, entries in
             let income  = entries.filter { $0.type == .income  }.map(\.amount).reduce(0, +)
@@ -101,7 +101,7 @@ struct NightNeonChartView: View {
 
             VStack(spacing: 16) {
                 // Заголовок
-                Text("Analytics")
+                Text("Аналитика")
                     .font(.largeTitle.weight(.semibold))
                     .foregroundStyle(isDark ? posGradient : Theme.skyGradient)
 
@@ -115,9 +115,9 @@ struct NightNeonChartView: View {
 
                 // Текстовая сводка
                 HStack(spacing: 24) {
-                    summaryBlock(title: "Income", amount: totalIncome, gradient: posGradient, positive: true)
-                    summaryBlock(title: "Expense", amount: totalExpense, gradient: negGradient, positive: false)
-                    summaryBlock(title: "Net", amount: totalNet, gradient: totalNet >= 0 ? posGradient : negGradient, positive: totalNet >= 0)
+                    summaryBlock(title: "Доход", amount: totalIncome, gradient: posGradient, positive: true)
+                    summaryBlock(title: "Расход", amount: totalExpense, gradient: negGradient, positive: false)
+                    summaryBlock(title: "Баланс", amount: totalNet, gradient: totalNet >= 0 ? posGradient : negGradient, positive: totalNet >= 0)
                 }
                 .padding()
                 .background(isDark ? Color.white.opacity(0.05) : Color(.systemGray6))
@@ -138,7 +138,7 @@ struct NightNeonChartView: View {
             Text(title)
                 .font(.caption)
                 .foregroundColor(.secondary)
-            Text(amount, format: .currency(code: Locale.current.currencyCode ?? "RUB"))
+            Text(amount, format: .currency(code: AppFormat.currencyCode))
                 .font(.headline)
                 .foregroundStyle(gradient)
         }

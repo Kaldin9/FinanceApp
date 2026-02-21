@@ -19,7 +19,7 @@ struct EntryListView: View {
                     EntryRowView(entry: entry)
                         .onTapGesture { editingEntry = entry }
                 }
-                .onDelete(perform: store.delete)
+                .onDelete(perform: store.deleteDisplayed)
             }
             .searchable(text: $store.searchText, prompt: "Поиск по категории")
             .toolbar {

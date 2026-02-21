@@ -18,7 +18,7 @@ struct EntryRowView: View {
                     .foregroundColor(.secondary)
             }
             Spacer()
-            Text(entry.amount, format: .currency(code: Locale.current.currencyCode ?? "USD"))
+            Text(entry.amount, format: .currency(code: AppFormat.currencyCode))
                 .foregroundColor(entry.type == .income ? .green : .red)
         }
         .padding(.vertical, 4)
